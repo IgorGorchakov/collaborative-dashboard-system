@@ -108,3 +108,67 @@ canvas {
     max-width: 100%;
     height: auto;
 }
+
+.hidden { display: none; }
+
+.dashboard-layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+#users-panel {
+    width: 200px;
+    flex-shrink: 0;
+    background: #f9fafb;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 12px 14px;
+}
+
+#users-panel h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #57606a;
+    letter-spacing: 0.03em;
+}
+
+#users-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#users-list li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+
+#users-list li::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #1a7f37;
+}
+
+#users-list li.self {
+    background: #eef4ff;
+    font-weight: 600;
+}
+
+#users-list li.self::after {
+    content: "you";
+    margin-left: auto;
+    font-size: 10px;
+    color: #57606a;
+    font-weight: 500;
+}

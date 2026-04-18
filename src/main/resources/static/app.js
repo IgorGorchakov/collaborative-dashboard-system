@@ -3,18 +3,19 @@
 /**
  * Minimal vanilla client for the collaborative drawing dashboard.
  *
- * Identity model (anonymous):
- *   - On first visit, a random userName is generated (e.g. "user-a3f12b") and
- *     stored in localStorage. It persists across reloads but is not verified
- *     by the server — it is a display handle only.
+ * Identity model (per-dashboard, server-validated):
+ *   - User types a display name on the Create or Join form.
+ *   - The name is sent on the STOMP CONNECT frame (X-Username header) together
+ *     with the dashboard id. The server rejects duplicates and invalid names.
+ *   - Last-used name is remembered in localStorage to prefill the input only.
  *
  * Flow:
- *   1. Ensure a local userName; create a dashboard (POST /api/dashboards)
- *      or open one via ?id=<uuid>.
- *   2. Connect STOMP-over-SockJS to /ws (no auth).
- *   3. Subscribe /topic/dashboard/{id}; fetch /history and replay; handle live frames.
- *   4. Batch pointer events every BATCH_MS and publish to /app/draw/{id}
- *      with our userName stamped in the body.
+ *   1. ?id=<uuid> → show Join panel; otherwise show Create panel.
+ *   2. Submit form → POST /api/dashboards (create) or GET /api/dashboards/{id} (join).
+ *   3. Connect STOMP-over-SockJS to /ws with identity headers.
+ *   4. Subscribe /topic/dashboard/{id} (strokes) and /topic/dashboard/{id}/users (presence).
+ *   5. Fetch /history, replay; handle live frames.
+ *   6. Batch pointer events every BATCH_MS and publish to /app/draw/{id}.
  */
 
 const BATCH_MS = 50;
@@ -24,8 +25,14 @@ const USERNAME_KEY = "dashboard.username";
 
 const statusEl       = document.getElementById("status");
 const createPanel    = document.getElementById("create-panel");
+const joinPanel      = document.getElementById("join-panel");
 const drawPanel      = document.getElementById("draw-panel");
 const createForm     = document.getElementById("create-form");
+const createUsername = document.getElementById("create-username");
+const createError    = document.getElementById("create-error");
+const joinForm       = document.getElementById("join-form");
+const joinUsername   = document.getElementById("join-username");
+const joinError      = document.getElementById("join-error");
 const canvas         = document.getElementById("canvas");
 const ctx            = canvas.getContext("2d");
 const colorInput     = document.getElementById("color");
@@ -35,28 +42,23 @@ const copyLinkBtn    = document.getElementById("copy-link");
 const clearBtn       = document.getElementById("clear-btn");
 const deleteBtn      = document.getElementById("delete-btn");
 const currentUserEl  = document.getElementById("current-user");
+const usersListEl    = document.getElementById("users-list");
 
 // ---------- identity ----------
 
-function generateUsername() {
-    // 6 hex chars is plenty for a per-browser display handle.
-    const rand = Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
-    return "user-" + rand;
+function rememberUsername(name) {
+    try { localStorage.setItem(USERNAME_KEY, name); } catch {}
 }
 
-function getUsername() {
-    let name = localStorage.getItem(USERNAME_KEY);
-    if (!name) {
-        name = generateUsername();
-        localStorage.setItem(USERNAME_KEY, name);
-    }
-    return name;
+function recalledUsername() {
+    try { return localStorage.getItem(USERNAME_KEY) || ""; } catch { return ""; }
 }
 
 // ---------- session state ----------
 
 let stompClient = null;
 let dashboard   = null;
+let username    = null;
 let buffer      = [];
 let drawing     = false;
 let flushTimer  = null;
@@ -89,9 +91,29 @@ function setStatus(state, text) {
     statusEl.textContent = text || state;
 }
 
-function showCreatePanel() {
-    createPanel.classList.remove("hidden");
-    drawPanel.classList.add("hidden");
+function showPanel(panel) {
+    for (const p of [createPanel, joinPanel, drawPanel]) p.classList.add("hidden");
+    panel.classList.remove("hidden");
+}
+
+function showError(el, msg) {
+    el.textContent = msg;
+    el.classList.remove("hidden");
+}
+
+function clearError(el) {
+    el.textContent = "";
+    el.classList.add("hidden");
+}
+
+function humanizeStompError(reason) {
+    switch (reason) {
+        case "username_taken":          return "That username is already in use on this dashboard.";
+        case "invalid_username":        return "Username must be 1–32 chars: letters, digits, space, _, ., -";
+        case "invalid_dashboard_id":    return "Invalid dashboard id.";
+        case "missing_identity_headers":return "Missing identity headers — please reload.";
+        default:                        return reason || "Connection error.";
+    }
 }
 
 // ---------- dashboard ----------
@@ -99,8 +121,11 @@ function showCreatePanel() {
 async function createDashboard(payload) { return api("POST", "/api/dashboards", payload); }
 async function loadDashboard(id)        { return api("GET",  "/api/dashboards/" + id); }
 
-function openDashboard(d) {
+function openDashboard(d, user) {
     dashboard = d;
+    username = user;
+    rememberUsername(user);
+    currentUserEl.textContent = user;
     dashboardIdEl.textContent = d.id;
     canvas.width  = d.width;
     canvas.height = d.height;
@@ -110,9 +135,9 @@ function openDashboard(d) {
     replayDone = false;
     liveBuffer = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    renderUsers([]);
 
-    createPanel.classList.add("hidden");
-    drawPanel.classList.remove("hidden");
+    showPanel(drawPanel);
 
     const url = new URL(window.location.href);
     url.searchParams.set("id", d.id);
@@ -121,10 +146,22 @@ function openDashboard(d) {
     connectStomp();
 }
 
+// ---------- active users ----------
+
+function renderUsers(users) {
+    usersListEl.innerHTML = "";
+    for (const name of users) {
+        const li = document.createElement("li");
+        li.textContent = name;
+        if (name === username) li.classList.add("self");
+        usersListEl.appendChild(li);
+    }
+}
+
 // ---------- live stream ----------
 
 function handleStroke(stroke) {
-    if (stroke.userId === getUsername()) return;             // skip own echo
+    if (stroke.userId === username) return;                  // skip own echo
     if (typeof stroke.ordinal === "number") {
         if (stroke.ordinal <= lastRenderedOrdinal) return;    // already drawn via history
         lastRenderedOrdinal = stroke.ordinal;
@@ -154,7 +191,11 @@ function connectStomp() {
     setStatus("connecting");
     stompClient = new StompJs.Client({
         webSocketFactory: () => new SockJS("/ws"),
-        reconnectDelay: 3000,
+        reconnectDelay: 0, // don't auto-reconnect on identity errors
+        connectHeaders: {
+            "X-Dashboard-Id": dashboard.id,
+            "X-Username": username,
+        },
         onConnect: () => {
             setStatus("connected");
             stompClient.subscribe("/topic/dashboard/" + dashboard.id, (frame) => {
@@ -164,15 +205,40 @@ function connectStomp() {
                     handleStroke(stroke);
                 } catch (e) { console.warn("Bad frame", e); }
             });
+            stompClient.subscribe("/topic/dashboard/" + dashboard.id + "/users", (frame) => {
+                try {
+                    const msg = JSON.parse(frame.body);
+                    renderUsers(msg.users || []);
+                } catch (e) { console.warn("Bad users frame", e); }
+            });
             replayHistory();
         },
         onStompError: (f) => {
-            console.error("STOMP error", f.headers["message"], f.body);
+            const reason = (f.headers && f.headers["message"]) || "";
+            console.error("STOMP error", reason, f.body);
             setStatus("disconnected", "error");
+            returnToIdentityPanel(humanizeStompError(reason));
         },
         onWebSocketClose: () => setStatus("disconnected"),
     });
     stompClient.activate();
+}
+
+function returnToIdentityPanel(errorText) {
+    if (stompClient) {
+        try { stompClient.deactivate(); } catch {}
+        stompClient = null;
+    }
+    // If dashboard exists, the user was joining/creating it — bounce them back
+    // to the join panel with the current dashboard id in the URL intact.
+    if (dashboard) {
+        joinUsername.value = username || recalledUsername();
+        showError(joinError, errorText);
+        showPanel(joinPanel);
+    } else {
+        showError(createError, errorText);
+        showPanel(createPanel);
+    }
 }
 
 // ---------- drawing ----------
@@ -205,7 +271,7 @@ function flushBuffer() {
     if (!stompClient || !stompClient.connected || buffer.length === 0) return;
     const payload = {
         dashboardId: dashboard.id,
-        userId: getUsername(),
+        userId: username,
         points: buffer,
         color: colorInput.value,
         thickness: parseInt(thicknessInp.value, 10),
@@ -241,18 +307,33 @@ canvas.addEventListener("pointerup",     stopDrawing);
 canvas.addEventListener("pointercancel", stopDrawing);
 canvas.addEventListener("pointerleave",  stopDrawing);
 
-// ---------- create / clear / delete ----------
+// ---------- create / join / clear / delete ----------
 
 createForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    clearError(createError);
     const fd = new FormData(createForm);
+    const user = (fd.get("username") || "").toString().trim();
     try {
         const d = await createDashboard({
             width:   parseInt(fd.get("width"), 10),
             height:  parseInt(fd.get("height"), 10),
+            username: user,
         });
-        openDashboard(d);
-    } catch (err) { alert(err.message); }
+        openDashboard(d, user);
+    } catch (err) { showError(createError, err.message); }
+});
+
+joinForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearError(joinError);
+    const user = (joinUsername.value || "").trim();
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (!id) { showError(joinError, "No dashboard id in URL."); return; }
+    try {
+        const d = await loadDashboard(id);
+        openDashboard(d, user);
+    } catch (err) { showError(joinError, err.message); }
 });
 
 copyLinkBtn.addEventListener("click", async () => {
@@ -277,25 +358,26 @@ deleteBtn.addEventListener("click", async () => {
         if (stompClient) try { stompClient.deactivate(); } catch {}
         stompClient = null;
         dashboard = null;
+        username = null;
+        currentUserEl.textContent = "";
         const url = new URL(window.location.href);
         url.searchParams.delete("id");
         window.history.replaceState({}, "", url);
-        showCreatePanel();
+        showPanel(createPanel);
     } catch (err) { alert("Delete failed: " + err.message); }
 });
 
 // ---------- bootstrap ----------
 
-(async function init() {
-    currentUserEl.textContent = getUsername();
+(function init() {
+    const remembered = recalledUsername();
+    createUsername.value = remembered;
+    joinUsername.value = remembered;
+
     const id = new URLSearchParams(window.location.search).get("id");
     if (id) {
-        try {
-            openDashboard(await loadDashboard(id));
-            return;
-        } catch (err) {
-            console.warn("Failed to open dashboard from URL", err);
-        }
+        showPanel(joinPanel);
+    } else {
+        showPanel(createPanel);
     }
-    showCreatePanel();
 })();

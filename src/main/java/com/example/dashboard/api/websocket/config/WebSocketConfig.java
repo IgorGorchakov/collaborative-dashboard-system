@@ -1,7 +1,10 @@
 package com.example.dashboard.api.websocket.config;
 
+import com.example.dashboard.api.websocket.UserHandshakeInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -13,15 +16,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * The in-memory simple broker relays messages within this JVM. Cross-node
  * fan-out (Redis Pub/Sub) is deferred.
  *
- * No authentication is enforced on the CONNECT frame — identity is a
- * client-supplied username carried in each {@code StrokeMessage}.
+ * Identity is established on the STOMP CONNECT frame via {@link UserHandshakeInterceptor},
+ * which validates X-Dashboard-Id / X-Username headers and claims a per-dashboard
+ * unique username in the in-memory presence registry.
  */
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${app.websocket.allowed-origins:*}")
     private String allowedOrigins;
+
+    private final UserHandshakeInterceptor userHandshakeInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -36,5 +43,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(allowedOrigins.split(","))
                 .withSockJS();
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(userHandshakeInterceptor);
     }
 }

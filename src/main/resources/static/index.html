@@ -18,11 +18,22 @@
 <section id="create-panel" class="panel hidden">
     <h2>Create a dashboard</h2>
     <form id="create-form">
+        <label>Username <input type="text" name="username" id="create-username" required minlength="1" maxlength="32" pattern="[A-Za-z0-9 _.\-]+" placeholder="Your display name"/></label>
         <label>Width <input type="number" name="width" value="1280" min="100" max="8192" required/></label>
         <label>Height <input type="number" name="height" value="720" min="100" max="8192" required/></label>
         <button type="submit">Create</button>
     </form>
+    <p id="create-error" class="error hidden"></p>
     <p class="hint">Or open an existing dashboard: <code>?id=&lt;uuid&gt;</code> in the URL.</p>
+</section>
+
+<section id="join-panel" class="panel hidden">
+    <h2>Join dashboard</h2>
+    <form id="join-form">
+        <label>Username <input type="text" name="username" id="join-username" required minlength="1" maxlength="32" pattern="[A-Za-z0-9 _.\-]+" placeholder="Your display name"/></label>
+        <button type="submit">Join</button>
+    </form>
+    <p id="join-error" class="error hidden"></p>
 </section>
 
 <section id="draw-panel" class="panel hidden">
@@ -34,7 +45,13 @@
         <button id="clear-btn" class="danger">Clear canvas</button>
         <button id="delete-btn" class="danger">Delete dashboard</button>
     </div>
-    <canvas id="canvas"></canvas>
+    <div class="dashboard-layout">
+        <aside id="users-panel">
+            <h3>Active users</h3>
+            <ul id="users-list"></ul>
+        </aside>
+        <canvas id="canvas"></canvas>
+    </div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>

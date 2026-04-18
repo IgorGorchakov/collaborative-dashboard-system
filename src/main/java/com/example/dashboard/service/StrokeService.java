@@ -1,7 +1,7 @@
 package com.example.dashboard.service;
 
 import com.example.dashboard.dto.StrokeMessage;
-import com.example.dashboard.model.Stroke;
+import com.example.dashboard.repository.model.Stroke;
 import com.example.dashboard.repository.StrokeRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

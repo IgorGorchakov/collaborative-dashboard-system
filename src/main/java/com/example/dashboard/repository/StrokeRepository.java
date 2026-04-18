@@ -1,6 +1,6 @@
 package com.example.dashboard.repository;
 
-import com.example.dashboard.model.Stroke;
+import com.example.dashboard.repository.model.Stroke;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

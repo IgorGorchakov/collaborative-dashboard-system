@@ -1,4 +1,4 @@
-package com.example.dashboard.config;
+package com.example.dashboard.api.websocket.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -25,11 +25,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // To carry the messages back to the client on destinations prefixed "/topic", "/queue"
-        registry.enableSimpleBroker("/topic", "/queue");
+        // To carry the messages back to the client
+        registry.enableSimpleBroker("/topic");
         // To filter destinations targeting application annotated methods (via @MessageMapping).
         registry.setApplicationDestinationPrefixes("/app");
-        registry.setUserDestinationPrefix("/user");
     }
 
     @Override

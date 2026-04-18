@@ -1,4 +1,4 @@
-package com.example.dashboard.websocket;
+package com.example.dashboard.api.websocket;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

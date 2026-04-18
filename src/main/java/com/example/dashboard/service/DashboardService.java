@@ -1,7 +1,7 @@
 package com.example.dashboard.service;
 
 import com.example.dashboard.dto.CreateDashboardRequest;
-import com.example.dashboard.model.Dashboard;
+import com.example.dashboard.repository.model.Dashboard;
 import com.example.dashboard.repository.DashboardRepository;
 import com.example.dashboard.repository.StrokeRepository;
 import lombok.RequiredArgsConstructor;

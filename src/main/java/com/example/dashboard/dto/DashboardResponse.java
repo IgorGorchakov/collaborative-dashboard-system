@@ -1,6 +1,6 @@
 package com.example.dashboard.dto;
 
-import com.example.dashboard.model.Dashboard;
+import com.example.dashboard.repository.model.Dashboard;
 
 import java.time.Instant;
 import java.util.UUID;

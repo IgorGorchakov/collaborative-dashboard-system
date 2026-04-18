@@ -1,4 +1,4 @@
-package com.example.dashboard.model;
+package com.example.dashboard.repository.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

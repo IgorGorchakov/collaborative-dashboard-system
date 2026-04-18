@@ -1,10 +1,9 @@
-package com.example.dashboard.websocket;
+package com.example.dashboard.api.websocket;
 
 import com.example.dashboard.dto.StrokeMessage;
 import com.example.dashboard.service.StrokeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

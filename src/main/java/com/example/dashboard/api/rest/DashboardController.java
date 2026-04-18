@@ -1,4 +1,4 @@
-package com.example.dashboard.controller;
+package com.example.dashboard.api.rest;
 
 import com.example.dashboard.dto.CreateDashboardRequest;
 import com.example.dashboard.dto.DashboardResponse;

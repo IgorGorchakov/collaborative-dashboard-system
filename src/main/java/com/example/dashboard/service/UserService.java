@@ -1,4 +1,4 @@
-package com.example.dashboard.presence;
+package com.example.dashboard.service;
 
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Names are released when the STOMP session ends.
  */
 @Component
-public class ActiveUserRegistry {
+public class UserService {
 
     /** dashboardId -> (sessionId -> username) */
     private final Map<UUID, Map<String, String>> byDashboard = new ConcurrentHashMap<>();

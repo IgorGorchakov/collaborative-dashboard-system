@@ -1,7 +1,7 @@
 package com.example.dashboard.api.websocket;
 
 import com.example.dashboard.dto.ActiveUsersMessage;
-import com.example.dashboard.presence.ActiveUserRegistry;
+import com.example.dashboard.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -32,7 +32,7 @@ public class ConnectionListener {
 
     private static final Pattern USERS_TOPIC = Pattern.compile("^/topic/dashboard/([0-9a-fA-F-]{36})/users$");
 
-    private final ActiveUserRegistry registry;
+    private final UserService registry;
     private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener

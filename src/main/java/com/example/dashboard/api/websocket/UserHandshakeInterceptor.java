@@ -1,6 +1,6 @@
 package com.example.dashboard.api.websocket;
 
-import com.example.dashboard.presence.ActiveUserRegistry;
+import com.example.dashboard.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -40,7 +40,7 @@ public class UserHandshakeInterceptor implements ChannelInterceptor {
 
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9 _.\\-]{1,32}$");
 
-    private final ActiveUserRegistry registry;
+    private final UserService registry;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {

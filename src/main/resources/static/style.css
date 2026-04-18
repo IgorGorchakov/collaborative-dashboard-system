@@ -1,0 +1,110 @@
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f6f8;
+    color: #222;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+header h1 { font-size: 18px; margin: 0; }
+
+.status {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status.connected    { background: #dff5e1; color: #1a7f37; }
+.status.disconnected { background: #fde2e2; color: #b42318; }
+.status.connecting   { background: #fff4d6; color: #9a6700; }
+
+.panel {
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+}
+
+.panel.hidden { display: none; }
+
+.panel h2 { margin-top: 0; font-size: 16px; }
+
+form label { display: inline-flex; flex-direction: column; margin-right: 14px; font-size: 13px; }
+form input { padding: 6px 8px; border: 1px solid #d0d7de; border-radius: 4px; font-size: 14px; }
+form button, .toolbar button {
+    padding: 7px 14px;
+    background: #2266cc;
+    color: #fff;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+form button:hover, .toolbar button:hover { background: #1a54a8; }
+
+.hint { font-size: 12px; color: #666; margin-bottom: 0; }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.user-pill {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: #eef2f6;
+    color: #1f2937;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+#logout-btn {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: #fff;
+    color: #374151;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.auth-forms { display: flex; gap: 40px; flex-wrap: wrap; }
+.auth-forms form { display: flex; flex-direction: column; gap: 10px; min-width: 220px; }
+.auth-forms h3 { margin: 0 0 4px; font-size: 14px; }
+
+.error { color: #b42318; font-size: 13px; margin-top: 12px; }
+
+.toolbar button.danger {
+    background: #fff;
+    color: #b42318;
+    border: 1px solid #fca5a5;
+}
+.toolbar button.danger:hover { background: #fee2e2; }
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    font-size: 13px;
+}
+
+canvas {
+    display: block;
+    background: #fff;
+    border: 1px solid #d0d7de;
+    cursor: crosshair;
+    max-width: 100%;
+    height: auto;
+}

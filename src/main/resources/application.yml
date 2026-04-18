@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: collaborative-dashboard-system
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dashboard}
+    username: ${DB_USER:dashboard}
+    password: ${DB_PASSWORD:dashboard}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+
+app:
+  websocket:
+    allowed-origins: "*"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

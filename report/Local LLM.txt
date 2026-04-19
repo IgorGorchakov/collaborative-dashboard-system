@@ -1,0 +1,6 @@
+To update ~/.zshrc file via TextEdit:
+sudo open -e ~/.zshrc
+
+To update local LLM model:
+claude-lm                               ## run with default model 'google/gemma-4-26b-a4b'
+claude-lm -model qwen/qwen3-coder-30b   ## run with model 'google/gemma-4-26b-a4b'

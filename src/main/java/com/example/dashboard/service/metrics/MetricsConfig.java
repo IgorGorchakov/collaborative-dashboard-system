@@ -1,7 +1,8 @@
-package com.example.dashboard.service;
+package com.example.dashboard.service.metrics;
 
 import com.example.dashboard.repository.DashboardRepository;
 import com.example.dashboard.repository.StrokeRepository;
+import com.example.dashboard.service.UserService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;

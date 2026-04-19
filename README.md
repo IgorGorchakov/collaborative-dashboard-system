@@ -88,7 +88,7 @@ Live collaborative drawing:
 | GET    | `/api/dashboards/{id}`                | Fetch dashboard metadata                         |
 | GET    | `/api/dashboards/{id}/history`        | Stream all persisted strokes (ordered) as a JSON array |
 | POST   | `/api/dashboards/{id}/clear`          | Wipe strokes, keep the dashboard                 |
-| DELETE | `/api/dashboards/{id}`                | Delete dashboard (cascades strokes)              |
+
 
 #### History streaming
 

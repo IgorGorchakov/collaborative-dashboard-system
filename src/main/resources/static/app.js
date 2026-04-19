@@ -40,7 +40,7 @@ const thicknessInp   = document.getElementById("thickness");
 const dashboardIdEl  = document.getElementById("dashboard-id");
 const copyLinkBtn    = document.getElementById("copy-link");
 const clearBtn       = document.getElementById("clear-btn");
-const deleteBtn      = document.getElementById("delete-btn");
+
 const currentUserEl  = document.getElementById("current-user");
 const usersListEl    = document.getElementById("users-list");
 
@@ -383,21 +383,6 @@ clearBtn.addEventListener("click", async () => {
     } catch (err) { alert("Clear failed: " + err.message); }
 });
 
-deleteBtn.addEventListener("click", async () => {
-    if (!confirm("Delete this dashboard permanently?")) return;
-    try {
-        await api("DELETE", "/api/dashboards/" + dashboard.id);
-        if (stompClient) try { stompClient.deactivate(); } catch {}
-        stompClient = null;
-        dashboard = null;
-        username = null;
-        currentUserEl.textContent = "";
-        const url = new URL(window.location.href);
-        url.searchParams.delete("id");
-        window.history.replaceState({}, "", url);
-        showPanel(createPanel);
-    } catch (err) { alert("Delete failed: " + err.message); }
-});
 
 // ---------- bootstrap ----------
 

@@ -32,16 +32,26 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // To carry the messages back to the client
-        registry.enableSimpleBroker("/topic");
-        // To filter destinations targeting application annotated methods (via @MessageMapping).
+        // Activates an in-memory broker to handle message subscriptions and carry the messages back to the client
+        registry.enableSimpleBroker("/topic")
+                // Because WebSocket connections remain open, they must be monitored to prevent stale sessions from
+                // consuming server resources. Spring Boot relies on HeartbeatInterceptor to send periodic ping messages
+                // between the client and server. This keeps the connection active and detects disconnected clients.
+                // This sends a heartbeat from the server every 10 seconds and expects a response from the client every
+                // 60 seconds. If a client fails to respond within the expected time frame, Spring Boot closes the
+                // connection to free up resources.
+                .setHeartbeatValue(new long[]{10_000, 60_000});
+        // Defines a namespace for messages sent by clients (handled via @MessageMapping), keeping them separate from broker destinations
         registry.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Defines where clients establish WebSocket connections
         registry.addEndpoint("/ws")
+                // Permits cross-origin requests, though in production, it should be restricted to trusted domains
                 .setAllowedOriginPatterns(allowedOrigins.split(","))
+                // Adds fallback support for browsers that don’t support native WebSockets by emulating the behavior over HTTP
                 .withSockJS();
     }
 

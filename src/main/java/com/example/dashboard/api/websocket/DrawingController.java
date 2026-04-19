@@ -1,6 +1,6 @@
 package com.example.dashboard.api.websocket;
 
-import com.example.dashboard.dto.StrokeMessage;
+import com.example.dashboard.service.dto.StrokeMessage;
 import com.example.dashboard.service.StrokeService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

@@ -1,6 +1,6 @@
 package com.example.dashboard.service;
 
-import com.example.dashboard.dto.CreateDashboardRequest;
+import com.example.dashboard.service.dto.CreateDashboardRequest;
 import com.example.dashboard.repository.model.Dashboard;
 
 import java.util.UUID;

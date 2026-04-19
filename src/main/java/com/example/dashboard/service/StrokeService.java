@@ -1,7 +1,6 @@
 package com.example.dashboard.service;
 
-import com.example.dashboard.dto.StrokeMessage;
-import com.example.dashboard.repository.model.Stroke;
+import com.example.dashboard.service.dto.StrokeMessage;
 
 import java.io.IOException;
 import java.io.OutputStream;

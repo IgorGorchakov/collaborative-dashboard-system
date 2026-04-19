@@ -1,6 +1,6 @@
 package com.example.dashboard.api.websocket;
 
-import com.example.dashboard.dto.ActiveUsersMessage;
+import com.example.dashboard.service.dto.ActiveUsersMessage;
 import com.example.dashboard.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

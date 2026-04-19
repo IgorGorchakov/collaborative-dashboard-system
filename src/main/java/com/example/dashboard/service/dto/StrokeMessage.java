@@ -1,4 +1,4 @@
-package com.example.dashboard.dto;
+package com.example.dashboard.service.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

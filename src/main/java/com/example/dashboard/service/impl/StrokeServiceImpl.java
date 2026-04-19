@@ -1,6 +1,6 @@
 package com.example.dashboard.service.impl;
 
-import com.example.dashboard.dto.StrokeMessage;
+import com.example.dashboard.service.dto.StrokeMessage;
 import com.example.dashboard.repository.StrokeRepository;
 import com.example.dashboard.repository.model.Stroke;
 import com.example.dashboard.service.StrokeService;

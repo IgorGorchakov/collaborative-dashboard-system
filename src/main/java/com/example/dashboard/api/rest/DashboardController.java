@@ -1,14 +1,13 @@
 package com.example.dashboard.api.rest;
 
-import com.example.dashboard.dto.CreateDashboardRequest;
-import com.example.dashboard.dto.DashboardResponse;
+import com.example.dashboard.service.dto.CreateDashboardRequest;
+import com.example.dashboard.service.dto.DashboardResponse;
 import com.example.dashboard.service.DashboardService;
 import com.example.dashboard.service.StrokeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

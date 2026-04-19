@@ -1,4 +1,4 @@
-package com.example.dashboard.dto;
+package com.example.dashboard.service.dto;
 
 import com.example.dashboard.repository.model.Dashboard;
 

@@ -1,4 +1,4 @@
-package com.example.dashboard.dto;
+package com.example.dashboard.service.dto;
 
 import java.util.List;
 import java.util.UUID;

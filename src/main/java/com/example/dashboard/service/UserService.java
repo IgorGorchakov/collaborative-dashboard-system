@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class UserService {
 
-    /** dashboardId -> (sessionId -> username) */
+    /** Index: dashboardId -> (sessionId -> username) */
     private final Map<UUID, Map<String, String>> byDashboard = new ConcurrentHashMap<>();
 
-    /** sessionId -> dashboardId, for O(1) lookup from SessionDisconnectEvent. */
+    /** Reverse Index: sessionId -> dashboardId, for O(1) lookup from SessionDisconnectEvent. */
     private final Map<String, UUID> sessionIndex = new ConcurrentHashMap<>();
 
     /**

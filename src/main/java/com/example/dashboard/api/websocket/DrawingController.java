@@ -61,6 +61,7 @@ public class DrawingController {
         }
 
         String payload = strokeService.save(dashboardId, message);
+        // Broadcast drawing strokes to other dashboard users
         messagingTemplate.convertAndSend("/topic/dashboard/" + dashboardId, payload);
         acceptedCounter.increment();
     }

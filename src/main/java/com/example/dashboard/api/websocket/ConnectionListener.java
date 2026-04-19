@@ -87,8 +87,10 @@ public class ConnectionListener {
     }
 
     private void broadcastUsers(UUID dashboardId) {
+        // Broadcast a list of active users to other dashboard users
         messagingTemplate.convertAndSend(
                 "/topic/dashboard/" + dashboardId + "/users",
-                new ActiveUsersMessage(dashboardId, userService.usersOf(dashboardId)));
+                new ActiveUsersMessage(dashboardId, userService.usersOf(dashboardId))
+        );
     }
 }

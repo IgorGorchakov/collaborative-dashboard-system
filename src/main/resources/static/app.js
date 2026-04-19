@@ -66,6 +66,20 @@ let lastRenderedOrdinal = 0;
 let replayDone  = false;
 let liveBuffer  = [];
 
+// Bounded buffer for strokes arriving during history replay.
+const MAX_LIVE_BUFFER = 5000;
+
+function pushLiveBuffer(stroke) {
+    if (liveBuffer.length >= MAX_LIVE_BUFFER) {
+        liveBuffer.shift();
+    }
+    liveBuffer.push(stroke);
+}
+
+function clearLiveBuffer() {
+    liveBuffer = [];
+}
+
 // ---------- HTTP helper ----------
 
 async function api(method, path, body) {
@@ -133,7 +147,8 @@ function openDashboard(d, user) {
     // Reset replay state (relevant when switching dashboards without full reload)
     lastRenderedOrdinal = 0;
     replayDone = false;
-    liveBuffer = [];
+    clearLiveBuffer();
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     renderUsers([]);
 
@@ -218,7 +233,7 @@ function connectStomp() {
             stompClient.subscribe("/topic/dashboard/" + dashboard.id, (frame) => {
                 try {
                     const stroke = JSON.parse(frame.body);
-                    if (!replayDone) { liveBuffer.push(stroke); return; }
+                    if (!replayDone) { pushLiveBuffer(stroke); return; }
                     handleStroke(stroke);
                 } catch (e) { console.warn("Bad frame", e); }
             });

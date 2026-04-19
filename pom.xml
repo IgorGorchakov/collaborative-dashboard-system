@@ -83,6 +83,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Caffeine cache for in-memory session management -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.1.8</version>
+        </dependency>
+
         <!-- Dev tools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

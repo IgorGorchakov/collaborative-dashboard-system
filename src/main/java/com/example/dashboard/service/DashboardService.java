@@ -4,6 +4,7 @@ import com.example.dashboard.dto.CreateDashboardRequest;
 import com.example.dashboard.repository.model.Dashboard;
 import com.example.dashboard.repository.DashboardRepository;
 import com.example.dashboard.repository.StrokeRepository;
+import com.example.dashboard.service.exception.DashboardNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

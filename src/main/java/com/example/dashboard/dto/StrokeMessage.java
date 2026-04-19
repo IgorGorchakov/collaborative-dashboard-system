@@ -1,7 +1,10 @@
 package com.example.dashboard.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
@@ -21,8 +24,8 @@ public record StrokeMessage(
         @NotNull UUID dashboardId,
         @NotNull @Size(min = 1, max = 64) String userId,
         @NotEmpty @Size(max = 512) List<Point> points,
-        String color,
-        Integer thickness
+        @Pattern(regexp = "^#[0-9a-fA-F]{6}$") String color,
+        @Min(1) @Max(32) Integer thickness
 ) {
     public record Point(double x, double y) {}
 }

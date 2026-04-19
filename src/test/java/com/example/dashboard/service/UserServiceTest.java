@@ -1,6 +1,5 @@
-package com.example.dashboard.presence;
+package com.example.dashboard.service;
 
-import com.example.dashboard.service.UserService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

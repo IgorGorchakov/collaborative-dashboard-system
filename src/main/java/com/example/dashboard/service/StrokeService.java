@@ -5,10 +5,13 @@ import com.example.dashboard.repository.model.Stroke;
 import com.example.dashboard.repository.StrokeRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +25,17 @@ public class StrokeService {
 
     private final StrokeRepository strokeRepository;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
+
+    private Timer persistTimer;
+
+    @PostConstruct
+    void initMetrics() {
+        this.persistTimer = Timer.builder("dashboard.stroke.persist")
+                .description("Time to persist a single stroke (ordinal reserve + insert)")
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .register(meterRegistry);
+    }
 
     /**
      * Persist a stroke and return it enriched with its assigned ordinal.
@@ -30,6 +44,10 @@ public class StrokeService {
      */
     @Transactional
     public PersistedStroke append(UUID dashboardId, StrokeMessage message) {
+        return persistTimer.record(() -> doAppend(dashboardId, message));
+    }
+
+    private PersistedStroke doAppend(UUID dashboardId, StrokeMessage message) {
         long ordinal = strokeRepository.reserveNextOrdinal(dashboardId);
         String payload = serialize(message, ordinal);
 

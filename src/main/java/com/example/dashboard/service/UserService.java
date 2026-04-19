@@ -64,6 +64,16 @@ public class UserService {
         return Optional.of(new Leave(dashboardId, username));
     }
 
+    /** Total active sessions across all dashboards (for metrics / observability). */
+    public int activeUserCount() {
+        return sessionIndex.size();
+    }
+
+    /** Number of dashboards that currently have at least one connected user. */
+    public int activeDashboardCount() {
+        return byDashboard.size();
+    }
+
     /** Sorted snapshot of active usernames for the given dashboard. */
     public List<String> usersOf(UUID dashboardId) {
         Map<String, String> bucket = byDashboard.get(dashboardId);

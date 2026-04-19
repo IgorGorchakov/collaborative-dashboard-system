@@ -1,0 +1,359 @@
+{
+  "title": "Collaborative Dashboard — Domain Metrics",
+  "uid": "collab-dash-domain",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "tags": ["collaborative-dashboard", "spring-boot", "micrometer"],
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "liveNow": false,
+  "weekStart": "",
+  "style": "dark",
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {
+          "selected": true,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "refresh": 1
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Active Users (live)",
+      "description": "Total sessions currently connected across all dashboards",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "red", "value": 200}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "sum(dashboard_active_users)",
+          "legendFormat": "active users",
+          "instant": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Dashboards (total)",
+      "description": "Total rows in the dashboards table",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 5, "w": 6, "x": 6, "y": 0},
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "sum(dashboard_count)",
+          "legendFormat": "dashboards"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Strokes (total persisted)",
+      "description": "Total rows in the strokes table across all dashboards",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 5, "w": 6, "x": 12, "y": 0},
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "sum(dashboard_strokes_count)",
+          "legendFormat": "strokes"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Active Dashboards",
+      "description": "Dashboards with at least one connected user right now",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 5, "w": 6, "x": 18, "y": 0},
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "sum(dashboard_active_dashboards)",
+          "legendFormat": "active dashboards"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Active Users over time",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 5},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {"mode": "none", "group": "A"}
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "sum(dashboard_active_users)",
+          "legendFormat": "active users"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "STOMP /draw message rate (per sec)",
+      "description": "rate(dashboard_stomp_messages_total[1m]), split by outcome",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 5},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {"mode": "normal", "group": "A"}
+          },
+          "unit": "reqps",
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byRegexp", "options": ".*dropped.*"},
+            "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}]
+          },
+          {
+            "matcher": {"id": "byRegexp", "options": ".*accepted.*"},
+            "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]
+          }
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "bottom", "showLegend": true, "calcs": ["mean", "max", "sum"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "sum by (outcome) (rate(dashboard_stomp_messages_total[1m]))",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Stroke persist latency (p50 / p95 / p99)",
+      "description": "histogram_quantile over dashboard_stroke_persist_seconds_bucket[5m]",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 13},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "unit": "s",
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "bottom", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(dashboard_stroke_persist_seconds_bucket[5m])))",
+          "legendFormat": "p50"
+        },
+        {
+          "refId": "B",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(dashboard_stroke_persist_seconds_bucket[5m])))",
+          "legendFormat": "p95"
+        },
+        {
+          "refId": "C",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(dashboard_stroke_persist_seconds_bucket[5m])))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Strokes persisted — growth rate (per sec)",
+      "description": "rate of strokes being persisted; complements the total gauge",
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 13},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "unit": "ops",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "sum(rate(dashboard_stroke_persist_seconds_count[1m]))",
+          "legendFormat": "strokes / sec"
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,9 @@ package com.example.dashboard.api.websocket;
 
 import com.example.dashboard.dto.StrokeMessage;
 import com.example.dashboard.service.StrokeService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,22 @@ public class DrawingController {
 
     private final StrokeService strokeService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MeterRegistry meterRegistry;
+
+    private Counter acceptedCounter;
+    private Counter droppedCounter;
+
+    @PostConstruct
+    void initMetrics() {
+        this.acceptedCounter = Counter.builder("dashboard.stomp.messages")
+                .description("STOMP /draw messages processed")
+                .tag("outcome", "accepted")
+                .register(meterRegistry);
+        this.droppedCounter = Counter.builder("dashboard.stomp.messages")
+                .description("STOMP /draw messages processed")
+                .tag("outcome", "dropped")
+                .register(meterRegistry);
+    }
 
     @MessageMapping("/draw/{dashboardId}")
     public void draw(@DestinationVariable UUID dashboardId,
@@ -30,6 +49,7 @@ public class DrawingController {
                      @Header(name = SimpMessageHeaderAccessor.SESSION_ATTRIBUTES, required = false)
                      Map<String, Object> sessionAttributes) {
         if (!dashboardId.equals(message.dashboardId())) {
+            droppedCounter.increment();
             return;
         }
 
@@ -40,11 +60,13 @@ public class DrawingController {
 
         if (sessionDashboard == null || !sessionDashboard.equals(dashboardId)) {
             log.debug("Dropping stroke: session not bound to dashboard {}", dashboardId);
+            droppedCounter.increment();
             return;
         }
         if (sessionUsername == null || !sessionUsername.equals(message.userId())) {
             log.debug("Dropping stroke: body userId={} does not match session username={}",
                     message.userId(), sessionUsername);
+            droppedCounter.increment();
             return;
         }
 
@@ -52,5 +74,6 @@ public class DrawingController {
         messagingTemplate.convertAndSend(
                 "/topic/dashboard/" + dashboardId,
                 persisted.payloadJson());
+        acceptedCounter.increment();
     }
 }

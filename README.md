@@ -74,11 +74,11 @@ Spring Boot 3.3.4 manages transitive versions for Spring Framework, Jackson, Hib
 
 Dashboard setup screen:
 
-![Dashboard setup](docs/ui/ui_dashboard_setup.png)
+2![Dashboard setup](docs/diagrams/ui/ui_dashboard_setup.png)
 
 Live collaborative drawing:
 
-![Dashboard drawing](docs/ui/ui_dashboard_drawing.png)
+![Dashboard drawing](docs/diagrams/ui/ui_dashboard_drawing.png)
 
 ### REST API (`DashboardController`)
 
@@ -248,15 +248,15 @@ The STOMP broker is the **in-memory SimpleBroker** (single JVM) with:
 
 ### Joining a dashboard and receiving the current user list
 
-![User connection flow](docs/diagrams/user_connection_flow.png)
+![User connection flow](docs/diagrams/flow/user_connection_flow.png)
 
 ### Drawing a stroke
 
-![User drawing a stroke flow](docs/diagrams/user_drawing_a_stroke_flow.png)
+![User drawing a stroke flow](docs/diagrams/flow/user_drawing_a_stroke_flow.png)
 
 ### Leaving
 
-![User disconnection flow](docs/diagrams/user_disconnection_flow.png)
+![User disconnection flow](docs/diagrams/flow/user_disconnection_flow.png)
 
 ---
 
@@ -352,7 +352,7 @@ scrape_configs:
   - Stroke persist latency p50/p95/p99
 - **Datasource**: provisioned Prometheus at `http://prometheus:9090`.
 
-![Grafana dashboard](docs/monitoring/grafana_dashboard.png)
+![Grafana dashboard](docs/diagrams/monitoring/grafana_dashboard.png)
 
 No alerting rules are currently shipped.
 

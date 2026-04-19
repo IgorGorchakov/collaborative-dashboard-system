@@ -7,7 +7,6 @@
 ![STOMP](https://img.shields.io/badge/STOMP-WebSocket-lightgrey)
 ![Micrometer](https://img.shields.io/badge/Micrometer-Prometheus-E6522C)
 ![Grafana](https://img.shields.io/badge/Grafana-OSS-F46800)
-![Testcontainers](https://img.shields.io/badge/Testcontainers-1.20.2-2496ED)
 ![Maven](https://img.shields.io/badge/Maven-3.9%2B-C71A36)
 
 > **Real-Time Collaborative Drawing Dashboard** — a Spring Boot 3.3 / Java 21 service where many users join a shared canvas over STOMP/WebSocket, draw strokes that are persisted to PostgreSQL, and see each other live via a presence channel. Observability is wired through Micrometer → Prometheus → Grafana.
@@ -64,8 +63,6 @@
 | Build            | Maven                                       | 3.9+           |
 | Tooling          | Lombok                                      | 1.18.40        |
 |                  | Spring Boot DevTools                        | (BOM-managed)  |
-| Testing          | Spring Boot Starter Test (JUnit 5, Mockito) | (BOM-managed)  |
-|                  | Testcontainers (`junit-jupiter`, `postgresql`) | 1.20.2      |
 | Infrastructure   | Docker Compose                              | —              |
 
 Spring Boot 3.3.4 manages transitive versions for Spring Framework, Jackson, Hibernate, Micrometer, Flyway, JUnit Jupiter, and Mockito via its BOM.

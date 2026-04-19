@@ -38,11 +38,10 @@
 - [Database Schema](#database-schema)
 - [Running with Docker Compose](#running-with-docker-compose)
 - [Monitoring](#monitoring)
-- [Ports Reference](#ports-reference)
 - [Scaling](#scaling)
 - [Limitations](#limitations)
-- [Tests](#tests)
 - [Build & Run](#build--run)
+- [Ports Reference](#ports-reference)
 
 ---
 
@@ -404,19 +403,6 @@ No alerting rules are currently shipped.
 
 ---
 
-## Ports Reference
-
-| Port  | Component      | Protocol     | Purpose                                    |
-|-------|----------------|--------------|--------------------------------------------|
-| 8081  | Spring Boot    | HTTP + WS    | REST API, `/ws` STOMP endpoint, actuator   |
-| 5432  | PostgreSQL     | TCP          | Persistence                                |
-| 9090  | Prometheus     | HTTP         | Scrape UI, query API                       |
-| 3000  | Grafana        | HTTP         | Dashboards UI (admin / admin)              |
-
-All are bound on the host by `docker-compose.yml` except 8081, which the Spring Boot app binds itself.
-
----
-
 ## Scaling
 
 ### Current limits (single-instance only)
@@ -499,13 +485,14 @@ open http://localhost:3000      # Grafana (admin / admin)
 open http://localhost:9090      # Prometheus
 ```
 
-Configuration keys worth knowing (`src/main/resources/application.yml`):
 
-| Key                                              | Default                               | Notes                                              |
-|--------------------------------------------------|---------------------------------------|----------------------------------------------------|
-| `server.port`                                    | `8081`                                |                                                    |
-| `spring.datasource.url`                          | `jdbc:postgresql://localhost:5432/dashboard` |                                            |
-| `spring.datasource.username` / `password`        | `dashboard` / `dashboard`             |                                                    |
-| `app.websocket.allowed-origins`                  | `*`                                   | **Override in production.**                        |
-| `management.endpoints.web.exposure.include`      | `health,info,metrics,prometheus`      |                                                    |
-| `management.metrics.tags.application`            | `collaborative-dashboard-system`      | Do not duplicate this as a Prometheus job label.   |
+## Ports Reference
+
+| Port  | Component      | Protocol     | Purpose                                    |
+|-------|----------------|--------------|--------------------------------------------|
+| 8081  | Spring Boot    | HTTP + WS    | REST API, `/ws` STOMP endpoint, actuator   |
+| 5432  | PostgreSQL     | TCP          | Persistence                                |
+| 9090  | Prometheus     | HTTP         | Scrape UI, query API                       |
+| 3000  | Grafana        | HTTP         | Dashboards UI (admin / admin)              |
+
+All are bound on the host by `docker-compose.yml` except 8081, which the Spring Boot app binds itself.

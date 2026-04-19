@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserService {
 
     /** Index: dashboardId -> (sessionId -> username) */
-    private final Map<UUID, Map<String, String>> byDashboard = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, String>> dashboardIndex = new ConcurrentHashMap<>();
 
     /** Reverse Index: sessionId -> dashboardId, for O(1) lookup from SessionDisconnectEvent. */
     private final Map<String, UUID> sessionIndex = new ConcurrentHashMap<>();
@@ -28,7 +28,7 @@ public class UserService {
      * Returns {@code false} if the name is already in use on that dashboard.
      */
     public boolean tryJoin(UUID dashboardId, String sessionId, String username) {
-        Map<String, String> bucket = byDashboard.computeIfAbsent(dashboardId, id -> new ConcurrentHashMap<>());
+        Map<String, String> bucket = dashboardIndex.computeIfAbsent(dashboardId, id -> new ConcurrentHashMap<>());
         synchronized (bucket) {
             if (bucket.containsValue(username)) {
                 return false;
@@ -47,7 +47,7 @@ public class UserService {
         if (dashboardId == null) {
             return Optional.empty();
         }
-        Map<String, String> bucket = byDashboard.get(dashboardId);
+        Map<String, String> bucket = dashboardIndex.get(dashboardId);
         if (bucket == null) {
             return Optional.empty();
         }
@@ -55,7 +55,7 @@ public class UserService {
         synchronized (bucket) {
             username = bucket.remove(sessionId);
             if (bucket.isEmpty()) {
-                byDashboard.remove(dashboardId, bucket);
+                dashboardIndex.remove(dashboardId, bucket);
             }
         }
         if (username == null) {
@@ -71,12 +71,12 @@ public class UserService {
 
     /** Number of dashboards that currently have at least one connected user. */
     public int activeDashboardCount() {
-        return byDashboard.size();
+        return dashboardIndex.size();
     }
 
     /** Sorted snapshot of active usernames for the given dashboard. */
     public List<String> usersOf(UUID dashboardId) {
-        Map<String, String> bucket = byDashboard.get(dashboardId);
+        Map<String, String> bucket = dashboardIndex.get(dashboardId);
         if (bucket == null) {
             return List.of();
         }

@@ -27,22 +27,7 @@ No SOLID violations worth flagging. The layering (REST → service → repositor
 
 ## High
 
-### H1. `StrokeMessage.color` and `thickness` are unvalidated — unbounded input lands in the DB
 
-- **File:** `src/main/java/com/example/dashboard/dto/StrokeMessage.java:24-25`
-- **Problem:** `color` is `String` with no `@Size` / `@Pattern`; `thickness` is `Integer` with no `@Min` / `@Max`. A client can publish a 10 MB `color` or `thickness = Integer.MAX_VALUE`. The payload is serialized by Jackson into the `strokes.payload` JSONB column, so every oversized message permanently bloats the DB. The existing `@NotEmpty @Size(max=512) List<Point> points` shows the author knows how to cap input — these two fields were missed.
-- **Fix:**
-  ```java
-  @Pattern(regexp = "^#[0-9a-fA-F]{6}$") String color,
-  @Min(1) @Max(32) Integer thickness
-  ```
-  Both nullable so old clients don't break. `@Valid` on `DrawingController.draw()` already enforces.
-
-### H2. `/api/dashboards/{id}` returns 500 instead of 404 on not-found
-
-- **File:** `src/main/java/com/example/dashboard/service/DashboardService.java:36`, `src/main/java/com/example/dashboard/api/rest/DashboardController.java:36,62,68`
-- **Problem:** `get(UUID)` throws `IllegalArgumentException("Dashboard not found: " + id)` when the row is missing. There is no `@ControllerAdvice` / `@ExceptionHandler`, so Spring surfaces this as a 500 with a stack trace in logs. Every REST method that calls `get` (`GET`, `clear`, `delete`) has the same problem. The frontend's `api()` helper then shows "500 Internal Server Error" to the user instead of a graceful "Dashboard not found."
-- **Fix:** Introduce a `DashboardNotFoundException extends RuntimeException` annotated with `@ResponseStatus(HttpStatus.NOT_FOUND)`, throw it from `DashboardService.get`. One-line fix, no global advice needed.
 
 ### H3. `/history` builds the full response in memory — denial-of-service via a large board
 

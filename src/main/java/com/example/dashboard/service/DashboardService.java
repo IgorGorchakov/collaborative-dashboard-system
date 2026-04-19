@@ -33,7 +33,7 @@ public class DashboardService {
 
     public Dashboard get(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Dashboard not found: " + id));
+                .orElseThrow(() -> new DashboardNotFoundException(id));
     }
 
     /** Wipe all strokes for a dashboard (keeps the dashboard itself). */

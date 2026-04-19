@@ -18,6 +18,9 @@ import org.springframework.stereotype.Controller;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.example.dashboard.api.websocket.UserHandshakeInterceptor.ATTR_DASHBOARD_ID;
+import static com.example.dashboard.api.websocket.UserHandshakeInterceptor.ATTR_USERNAME;
+
 @Controller
 @Slf4j
 public class DrawingController {
@@ -51,24 +54,8 @@ public class DrawingController {
                      @Valid @Payload StrokeMessage message,
                      @Header(name = SimpMessageHeaderAccessor.SESSION_ATTRIBUTES, required = false)
                      Map<String, Object> sessionAttributes) {
-        if (!dashboardId.equals(message.dashboardId())) {
-            droppedCounter.increment();
-            return;
-        }
 
-        UUID sessionDashboard = sessionAttributes == null
-                ? null : (UUID) sessionAttributes.get(UserHandshakeInterceptor.ATTR_DASHBOARD_ID);
-        String sessionUsername = sessionAttributes == null
-                ? null : (String) sessionAttributes.get(UserHandshakeInterceptor.ATTR_USERNAME);
-
-        if (sessionDashboard == null || !sessionDashboard.equals(dashboardId)) {
-            log.info("Dropping stroke: session not bound to dashboard {}", dashboardId);
-            droppedCounter.increment();
-            return;
-        }
-        if (sessionUsername == null || !sessionUsername.equals(message.userId())) {
-            log.info("Dropping stroke: body userId={} does not match session username={}",
-                    message.userId(), sessionUsername);
+        if (!validateStroke(dashboardId, message, sessionAttributes)) {
             droppedCounter.increment();
             return;
         }
@@ -78,5 +65,29 @@ public class DrawingController {
                 "/topic/dashboard/" + dashboardId,
                 persisted.payloadJson());
         acceptedCounter.increment();
+    }
+
+    private boolean validateStroke(
+            UUID dashboardId,
+            StrokeMessage message,
+            Map<String, Object> sessionAttributes
+    ) {
+        UUID sessionDashboard = sessionAttributes == null ? null : (UUID) sessionAttributes.get(ATTR_DASHBOARD_ID);
+        String sessionUsername = sessionAttributes == null ? null : (String) sessionAttributes.get(ATTR_USERNAME);
+
+        if (!dashboardId.equals(message.dashboardId())) {
+            log.warn("Dropping stroke: dashboardId from request url {} does not equal dashboardId from message {}", dashboardId, message.dashboardId());
+            return false;
+        }
+
+        if (sessionDashboard == null || !sessionDashboard.equals(dashboardId)) {
+            log.warn("Dropping stroke: session not bound to dashboard {}", dashboardId);
+            return false;
+        }
+        if (sessionUsername == null || !sessionUsername.equals(message.userId())) {
+            log.warn("Dropping stroke: body userId={} does not match session username={}", message.userId(), sessionUsername);
+            return false;
+        }
+        return true;
     }
 }

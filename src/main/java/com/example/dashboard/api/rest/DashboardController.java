@@ -52,8 +52,6 @@ public class DashboardController {
      */
     @GetMapping(value = "/{id}/history", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> history(@PathVariable UUID id) {
-        // Ensure the dashboard exists so clients get a 404 up-front rather than
-        // an empty array masking a typo'd ID.
         dashboardService.get(id);
         StreamingResponseBody body = out -> strokeService.writeHistory(id, out);
         return ResponseEntity.ok()
@@ -64,12 +62,6 @@ public class DashboardController {
     @PostMapping("/{id}/clear")
     public ResponseEntity<Void> clear(@PathVariable UUID id) {
         dashboardService.clear(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        dashboardService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

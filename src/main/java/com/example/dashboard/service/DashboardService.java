@@ -44,15 +44,4 @@ public class DashboardService {
         strokeRepository.deleteByDashboardId(d.getId());
         strokeRepository.resetOrdinal(d.getId());
     }
-
-    /** Delete dashboard + cascade strokes (FK ON DELETE CASCADE). */
-    @Transactional
-    public void delete(UUID id) {
-        Dashboard d = get(id);
-        repository.delete(d);
-        events.publishEvent(new DashboardDeletedEvent(d.getId()));
-    }
-
-    /** Fired after a dashboard is deleted so caches can evict their entry. */
-    public record DashboardDeletedEvent(UUID dashboardId) {}
 }

@@ -8,10 +8,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -29,12 +29,16 @@ public class StrokeService {
 
     private final StrokeRepository strokeRepository;
     private final ObjectMapper objectMapper;
-    private final MeterRegistry meterRegistry;
-
     private Timer persistTimer;
 
-    @PostConstruct
-    void initMetrics() {
+    @Autowired
+    public StrokeService(
+            StrokeRepository strokeRepository,
+            ObjectMapper objectMapper,
+            MeterRegistry meterRegistry
+    ) {
+        this.strokeRepository = strokeRepository;
+        this.objectMapper = objectMapper;
         this.persistTimer = Timer.builder("dashboard.stroke.persist")
                 .description("Time to persist a single stroke (ordinal reserve + insert)")
                 .publishPercentiles(0.5, 0.95, 0.99)

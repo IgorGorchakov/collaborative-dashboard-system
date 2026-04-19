@@ -4,10 +4,9 @@ import com.example.dashboard.dto.StrokeMessage;
 import com.example.dashboard.service.StrokeService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -20,19 +19,23 @@ import java.util.Map;
 import java.util.UUID;
 
 @Controller
-@RequiredArgsConstructor
 @Slf4j
 public class DrawingController {
 
     private final StrokeService strokeService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final MeterRegistry meterRegistry;
 
-    private Counter acceptedCounter;
-    private Counter droppedCounter;
+    private final Counter acceptedCounter;
+    private final Counter droppedCounter;
 
-    @PostConstruct
-    void initMetrics() {
+    @Autowired
+    public DrawingController(
+            StrokeService strokeService,
+            SimpMessagingTemplate messagingTemplate,
+            MeterRegistry meterRegistry
+    ) {
+        this.strokeService = strokeService;
+        this.messagingTemplate = messagingTemplate;
         this.acceptedCounter = Counter.builder("dashboard.stomp.messages")
                 .description("STOMP /draw messages processed")
                 .tag("outcome", "accepted")
@@ -59,12 +62,12 @@ public class DrawingController {
                 ? null : (String) sessionAttributes.get(UserHandshakeInterceptor.ATTR_USERNAME);
 
         if (sessionDashboard == null || !sessionDashboard.equals(dashboardId)) {
-            log.debug("Dropping stroke: session not bound to dashboard {}", dashboardId);
+            log.info("Dropping stroke: session not bound to dashboard {}", dashboardId);
             droppedCounter.increment();
             return;
         }
         if (sessionUsername == null || !sessionUsername.equals(message.userId())) {
-            log.debug("Dropping stroke: body userId={} does not match session username={}",
+            log.info("Dropping stroke: body userId={} does not match session username={}",
                     message.userId(), sessionUsername);
             droppedCounter.increment();
             return;

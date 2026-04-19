@@ -11,19 +11,7 @@
 
 > **Real-Time Collaborative Drawing Dashboard** — a Spring Boot 3.3 / Java 21 service where many users join a shared canvas over STOMP/WebSocket, draw strokes that are persisted to PostgreSQL, and see each other live via a presence channel. Observability is wired through Micrometer → Prometheus → Grafana.
 
-```
-       ┌──────────┐       STOMP/WS        ┌────────────────────┐       JDBC      ┌────────────┐
-       │ Browser  │ ───── /ws (SockJS) ──▶│  Spring Boot :8081 │ ──────────────▶ │ PostgreSQL │
-       │ (canvas) │ ◀── /topic/... ───────│  SimpleBroker      │                 │   :5432    │
-       └──────────┘                       └─────────┬──────────┘                 └────────────┘
-                                                    │ /actuator/prometheus
-                                                    ▼
-                                            ┌──────────────┐    ┌────────────┐
-                                            │ Prometheus   │◀──▶│  Grafana   │
-                                            │    :9090     │    │   :3000    │
-                                            └──────────────┘    └────────────┘
-```
-
+![Architecture](docs/diagrams/system/system_diagram.png)
 ---
 
 ## Table of Contents

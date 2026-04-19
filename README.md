@@ -92,9 +92,19 @@ Live collaborative drawing:
 |--------|---------------------------------------|--------------------------------------------------|
 | POST   | `/api/dashboards`                     | Create a new dashboard (width, height, username) |
 | GET    | `/api/dashboards/{id}`                | Fetch dashboard metadata                         |
-| GET    | `/api/dashboards/{id}/history`        | Replay all persisted strokes (ordered)           |
+| GET    | `/api/dashboards/{id}/history`        | Stream all persisted strokes (ordered) as a JSON array |
 | POST   | `/api/dashboards/{id}/clear`          | Wipe strokes, keep the dashboard                 |
 | DELETE | `/api/dashboards/{id}`                | Delete dashboard (cascades strokes)              |
+
+#### History streaming
+
+`GET /api/dashboards/{id}/history` is not a bulk list — it's an **HTTP-streamed JSON array**. Knowing the contract matters for both sides:
+
+- **Server** — `DashboardController#history` returns a `StreamingResponseBody`. `StrokeService#writeHistory` opens a JPA `Stream<Stroke>` (backed by a Postgres cursor) inside a read-only transaction and writes each persisted payload straight to the response `OutputStream`, framed as a JSON array: `[payload1,payload2,…,payloadN]`. The response body begins flushing as soon as the first row arrives from the DB; the server never materializes the full array on the heap, so a dashboard sitting at `HISTORY_MAX = 50 000` strokes no longer threatens process memory the way the previous `StringBuilder` implementation did.
+- **Missing-dashboard handling** — before the stream starts, `DashboardService.get(id)` runs so a typo'd UUID returns a clean `404 Not Found` up front instead of an empty `[]` that looks like a cleared board.
+- **Client** — `app.js` still reads the response with `res.json()` for simplicity (the server-side fix alone closes the DOS vector). The comment above `replayHistory` documents the drop-in path to incremental parsing (`ReadableStream` + NDJSON / oboe.js) if browser memory ever becomes a concern on very active boards.
+- **Ordering & dedupe** — rows are emitted in strictly ascending `ordinal`. The client tracks `lastRenderedOrdinal` and skips anything it has already drawn, which is what lets the replay/live-buffer overlap in `onConnect` work correctly.
+- **Bound** — `HISTORY_MAX` (50 000) still caps the stream. Beyond that, keyset pagination is the next step (see Scaling > Future improvements).
 
 ### WebSocket / STOMP
 
@@ -415,7 +425,7 @@ All are bound on the host by `docker-compose.yml` except 8081, which the Spring 
 - **SimpleBroker is in-JVM.** Subscribers on node A will not see strokes published to node B. `/topic/...` does not fan out across processes.
 - **`UserService` is in-memory.** Presence state is not shared; each node reports only its own sessions. Restarts drop all presence.
 - **Custom gauges are JVM-local.** Prometheus would scrape each instance independently; you'd aggregate with `sum(...)` in PromQL.
-- **History endpoint loads all strokes for a dashboard into memory** (hard cap 50 000). Large boards can pressure heap.
+- **History endpoint is streamed but not paginated** (hard cap 50 000). `/api/dashboards/{id}/history` uses `StreamingResponseBody` + a JPA cursor so rows flow straight from Postgres into the HTTP response without ever being fully materialized server-side — heap stays flat even for boards near the cap. The client still parses the full array in `replayHistory` (see `static/app.js`), so incremental parsing on the browser side is a future optimization; for true unbounded boards, keyset pagination is still needed.
 
 ### Already scale-friendly
 
@@ -442,7 +452,7 @@ All are bound on the host by `docker-compose.yml` except 8081, which the Spring 
 
 **2. Redis for presence** — introduce a `PresenceBackend` interface (the refactor already exists on a feature branch as of 2026-04-19; main still uses the in-memory `UserService`). The Redis implementation uses `SADD` + a tiny Lua script for atomic join / leave, with `SUBSCRIBE`-backed change notifications. This makes active-user counts and the users topic correct across the fleet.
 
-**3. History pagination / streaming** — replace the bulk list endpoint with a keyset-paginated or server-streamed feed so dashboards with tens of thousands of strokes don't materialize the entire board in one response.
+**3. History pagination** — `/history` already streams the response body via `StreamingResponseBody` over a JPA cursor, so the server never buffers the full 50 000-row payload on the heap. The remaining gap is on the wire and on the client: the response is still a single unbounded JSON array, and `app.js` parses it with `res.json()`. Replacing it with keyset-paginated pages (or a length-delimited NDJSON stream the browser can incrementally parse) is the next step for boards that grow beyond the cap.
 
 **4. Sticky sessions / session resumption** — add a `PING`/heartbeat-tolerant STOMP configuration and optionally a short-lived `SESSION-ID` cookie so a dropped socket can rejoin without losing its slot in the presence registry.
 
@@ -465,24 +475,6 @@ Documented in `report/audit-report.md`; summarized here.
 - **In-memory presence is lost on restart.** Everyone is kicked and must reconnect.
 - **Single-instance broker.** Horizontal scaling requires the Rabbit relay described above.
 - **Dropped STOMP messages are silently discarded** (only the `outcome=dropped` counter moves). There are no warn logs or per-session diagnostics.
-
----
-
-## Tests
-
-The project currently ships **6 unit tests**, all in a single file:
-
-| File                                                           | Tests |
-|----------------------------------------------------------------|-------|
-| `src/test/java/com/example/dashboard/presence/UserServiceTest.java` | 6     |
-
-Testcontainers (PostgreSQL 1.20.2) is wired into the build for future JPA / repository integration tests, but no integration tests are shipped yet.
-
-Run them with:
-
-```bash
-mvn test
-```
 
 ---
 

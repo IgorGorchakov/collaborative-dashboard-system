@@ -12,9 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -62,12 +66,37 @@ public class StrokeService {
         return new PersistedStroke(ordinal, payload);
     }
 
+    /**
+     * Streams the dashboard's persisted payloads as a JSON array directly to
+     * {@code out}. Rows are pulled from the DB via a cursor and written one at
+     * a time — neither the service nor the controller buffers the full response
+     * in memory. Bounded by {@link #HISTORY_MAX}.
+     *
+     * Runs inside a read-only transaction so the JPA stream's cursor remains
+     * open while we iterate; the controller invokes this from inside a
+     * {@code StreamingResponseBody}.
+     */
     @Transactional(readOnly = true)
-    public List<String> history(UUID dashboardId) {
-        return strokeRepository.findByDashboardIdOrderByOrdinalAsc(dashboardId).stream()
-                .limit(HISTORY_MAX)
-                .map(Stroke::getPayload)
-                .toList();
+    public void writeHistory(UUID dashboardId, OutputStream out) throws IOException {
+        out.write('[');
+        boolean[] first = {true};
+        try (Stream<Stroke> rows = strokeRepository.streamByDashboardIdOrderByOrdinalAsc(dashboardId)
+                .limit(HISTORY_MAX)) {
+            rows.forEach(stroke -> {
+                try {
+                    if (!first[0]) {
+                        out.write(',');
+                    }
+                    first[0] = false;
+                    out.write(stroke.getPayload().getBytes(StandardCharsets.UTF_8));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
+        out.write(']');
     }
 
     private String serialize(StrokeMessage message, long ordinal) {

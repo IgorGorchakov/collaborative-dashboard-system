@@ -8,10 +8,17 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public interface StrokeRepository extends JpaRepository<Stroke, Long> {
 
     List<Stroke> findByDashboardIdOrderByOrdinalAsc(UUID dashboardId);
+
+    /**
+     * Cursor-backed stream for the /history endpoint. Must be consumed inside
+     * an active transaction and closed by the caller (try-with-resources).
+     */
+    Stream<Stroke> streamByDashboardIdOrderByOrdinalAsc(UUID dashboardId);
 
     /**
      * Atomic next-ordinal reservation. Relies on the {@code dashboard_stroke_counter}

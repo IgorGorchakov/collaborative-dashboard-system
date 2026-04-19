@@ -169,6 +169,23 @@ function handleStroke(stroke) {
     renderStroke(stroke);
 }
 
+// Streaming contract for /history (see README > REST API > History streaming):
+//
+//   Server — DashboardController#history returns a StreamingResponseBody.
+//   StrokeService#writeHistory opens a JPA cursor (streamByDashboardIdOrder…)
+//   inside a read-only transaction and writes payloads straight to the HTTP
+//   response one row at a time: '[', payload1, ',', payload2, ..., ']'. The
+//   response body begins flushing as soon as the first DB row arrives, and
+//   the server never buffers the full array on the heap.
+//
+//   Client — we still consume the response with res.json() here. That's an
+//   intentional trade-off: the server-side fix alone removes the DOS vector
+//   described in audit H3, and within the 50k-row HISTORY_MAX cap the
+//   browser parse is cheap enough. If replay memory ever becomes a problem
+//   on very active boards, swap res.json() for an incremental parser
+//   (ReadableStream + NDJSON / oboe.js) — the server already emits each
+//   payload as a discrete JSON object, so line-delimiting is a one-line
+//   server change and a drop-in reader here.
 async function replayHistory() {
     try {
         const strokes = await api("GET", "/api/dashboards/" + dashboard.id + "/history");

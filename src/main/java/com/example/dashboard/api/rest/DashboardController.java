@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,24 +38,27 @@ public class DashboardController {
     }
 
     /**
-     * Returns every persisted stroke for the dashboard, ordered by ordinal.
-     * Each element is the raw JSON payload that was broadcast originally
-     * (augmented with its {@code ordinal}), so the client can reuse the same
-     * render path for history and live frames.
+     * Streams every persisted stroke for the dashboard, ordered by ordinal, as
+     * a JSON array. Each element is the raw JSON payload that was broadcast
+     * originally (augmented with its {@code ordinal}), so the client can reuse
+     * the same render path for history and live frames.
+     *
+     * Payloads are streamed to the response as they are read from the DB
+     * cursor (via {@code StreamingResponseBody} + a JPA {@code Stream}), so
+     * the server never materializes the full response on the heap even for
+     * very active dashboards.
      *
      * Pagination + incremental replay is tracked in feature 18.
      */
     @GetMapping(value = "/{id}/history", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> history(@PathVariable UUID id) {
-        List<String> payloads = strokeService.history(id);
-        StringBuilder sb = new StringBuilder(payloads.size() * 128 + 2);
-        sb.append('[');
-        for (int i = 0; i < payloads.size(); i++) {
-            if (i > 0) sb.append(',');
-            sb.append(payloads.get(i));
-        }
-        sb.append(']');
-        return ResponseEntity.ok(sb.toString());
+    public ResponseEntity<StreamingResponseBody> history(@PathVariable UUID id) {
+        // Ensure the dashboard exists so clients get a 404 up-front rather than
+        // an empty array masking a typo'd ID.
+        dashboardService.get(id);
+        StreamingResponseBody body = out -> strokeService.writeHistory(id, out);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body);
     }
 
     @PostMapping("/{id}/clear")

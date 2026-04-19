@@ -27,7 +27,7 @@ No SOLID violations worth flagging. The layering (REST → service → repositor
 
 ## High
 
-
+### Refactor 'init metrics'
 
 ### H3. `/history` builds the full response in memory — denial-of-service via a large board
 

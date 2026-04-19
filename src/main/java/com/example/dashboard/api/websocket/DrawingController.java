@@ -60,10 +60,8 @@ public class DrawingController {
             return;
         }
 
-        StrokeService.PersistedStroke persisted = strokeService.append(dashboardId, message);
-        messagingTemplate.convertAndSend(
-                "/topic/dashboard/" + dashboardId,
-                persisted.payloadJson());
+        String payload = strokeService.save(dashboardId, message);
+        messagingTemplate.convertAndSend("/topic/dashboard/" + dashboardId, payload);
         acceptedCounter.increment();
     }
 

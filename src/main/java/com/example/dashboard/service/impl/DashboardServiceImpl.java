@@ -1,0 +1,51 @@
+package com.example.dashboard.service.impl;
+
+import com.example.dashboard.dto.CreateDashboardRequest;
+import com.example.dashboard.repository.DashboardRepository;
+import com.example.dashboard.repository.StrokeRepository;
+import com.example.dashboard.repository.model.Dashboard;
+import com.example.dashboard.service.DashboardService;
+import com.example.dashboard.service.exception.DashboardNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class DashboardServiceImpl implements DashboardService {
+
+    private final DashboardRepository repository;
+    private final StrokeRepository strokeRepository;
+    private final ApplicationEventPublisher events;
+
+    @Transactional
+    @Override
+    public Dashboard create(CreateDashboardRequest request) {
+        Dashboard dashboard = Dashboard.builder()
+                .id(UUID.randomUUID())
+                .width(request.width())
+                .height(request.height())
+                .createdAt(Instant.now())
+                .build();
+        return repository.save(dashboard);
+    }
+
+    @Override
+    public Dashboard get(UUID id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new DashboardNotFoundException(id));
+    }
+
+    /** Wipe all strokes for a dashboard (keeps the dashboard itself). */
+    @Transactional
+    @Override
+    public void clear(UUID id) {
+        Dashboard d = get(id);
+        strokeRepository.deleteByDashboardId(d.getId());
+        strokeRepository.resetOrdinal(d.getId());
+    }
+}

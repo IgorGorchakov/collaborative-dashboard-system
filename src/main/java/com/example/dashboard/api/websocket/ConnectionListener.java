@@ -32,7 +32,7 @@ public class ConnectionListener {
 
     private static final Pattern USERS_TOPIC = Pattern.compile("^/topic/dashboard/([0-9a-fA-F-]{36})/users$");
 
-    private final UserService registry;
+    private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener
@@ -80,7 +80,7 @@ public class ConnectionListener {
 
     @EventListener
     public void onDisconnect(SessionDisconnectEvent event) {
-        registry.leave(event.getSessionId()).ifPresent(leave -> {
+        userService.leave(event.getSessionId()).ifPresent(leave -> {
             log.debug("Session disconnected: user={} dashboard={}", leave.username(), leave.dashboardId());
             broadcastUsers(leave.dashboardId());
         });
@@ -89,6 +89,6 @@ public class ConnectionListener {
     private void broadcastUsers(UUID dashboardId) {
         messagingTemplate.convertAndSend(
                 "/topic/dashboard/" + dashboardId + "/users",
-                new ActiveUsersMessage(dashboardId, registry.usersOf(dashboardId)));
+                new ActiveUsersMessage(dashboardId, userService.usersOf(dashboardId)));
     }
 }

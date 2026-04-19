@@ -21,7 +21,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 @Service
-@RequiredArgsConstructor
 public class StrokeService {
 
     /** Hard cap to keep the naive (all-in-one) history response bounded. */
@@ -29,7 +28,7 @@ public class StrokeService {
 
     private final StrokeRepository strokeRepository;
     private final ObjectMapper objectMapper;
-    private Timer persistTimer;
+    private final Timer persistTimer;
 
     @Autowired
     public StrokeService(

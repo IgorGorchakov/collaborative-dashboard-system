@@ -74,11 +74,11 @@ Spring Boot 3.3.4 manages transitive versions for Spring Framework, Jackson, Hib
 
 Dashboard setup screen:
 
-2![Dashboard setup](docs/diagrams/ui/ui_dashboard_setup.png)
+[Dashboard setup](docs/diagrams/ui/ui_dashboard_setup.png)
 
 Live collaborative drawing:
 
-![Dashboard drawing](docs/diagrams/ui/ui_dashboard_drawing.png)
+[Dashboard drawing](docs/diagrams/ui/ui_dashboard_drawing.png)
 
 ### REST API (`DashboardController`)
 

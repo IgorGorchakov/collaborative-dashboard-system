@@ -30,7 +30,6 @@
 
 - [Tech Stack](#tech-stack)
 - [Features](#features)
-- [Architecture](#architecture)
 - [WebSocket Message Broker](#websocket-message-broker)
 - [STOMP Topics & Data Flow](#stomp-topics--data-flow)
 - [Sequence Diagrams](#sequence-diagrams)
@@ -112,50 +111,6 @@ Live collaborative drawing:
 
 ---
 
-## Architecture
-
-```
-com.example.dashboard
-├── CollaborativeDashboardApplication          # @SpringBootApplication entry point
-├── api
-│   ├── rest
-│   │   └── DashboardController                # REST CRUD
-│   └── websocket
-│       ├── DrawingController                  # @MessageMapping /app/draw/{id}
-│       ├── ConnectionListener                 # STOMP lifecycle → presence broadcasts
-│       ├── UserHandshakeInterceptor           # Validates CONNECT, claims username
-│       └── config
-│           └── WebSocketConfig                # Simple broker, /topic + /app prefixes
-├── dto                                        # StrokeMessage, ActiveUsersMessage, etc.
-├── service
-│   ├── DashboardService                       # Dashboard CRUD (transactional)
-│   ├── StrokeService                          # Ordinal reservation + persistence
-│   ├── UserService                            # In-memory presence registry
-│   └── MetricsConfig                          # Micrometer gauges
-└── repository
-    ├── DashboardRepository
-    ├── StrokeRepository                       # reserveNextOrdinal (UPSERT)
-    └── model                                  # Dashboard, Stroke JPA entities
-```
-
-```mermaid
-flowchart LR
-  Browser -- "POST /api/dashboards/*" --> REST[DashboardController]
-  Browser -- "STOMP /ws" --> WS[DrawingController]
-  REST --> DS[DashboardService]
-  WS --> SS[StrokeService]
-  WS --> US[UserService]
-  CL[ConnectionListener] --> US
-  DS --> DR[(DashboardRepository)]
-  SS --> SR[(StrokeRepository)]
-  DR --> PG[(PostgreSQL)]
-  SR --> PG
-  MC[MetricsConfig] -. gauges .-> Prom[/prometheus endpoint/]
-  Prom --> P[Prometheus]
-  P --> G[Grafana]
-```
-
----
 
 ## WebSocket Message Broker
 
@@ -172,6 +127,9 @@ Spring's **`WebSocketMessageBroker` is the heart of this system.** Every live in
 ### The STOMP protocol
 
 **STOMP** (Simple/Streaming Text-Oriented Messaging Protocol) is a thin, text-based frame protocol carried over WebSocket. The app speaks STOMP 1.2 via `spring-boot-starter-websocket`.
+STOMP provides a structured way to send and receive messages over WebSockets. Unlike raw WebSockets, which only deal with low-level message frames, STOMP introduces concepts like destinations, headers, and subscriptions, making it easier to work with real-time messaging. Spring Boot processes STOMP messages by routing them through controllers, handling subscriptions, and forwarding messages to connected clients. This section goes over how messages flow through the system, how destinations are resolved, and how Spring Boot processes incoming and outgoing STOMP frames.
+
+
 
 Key frames used:
 
